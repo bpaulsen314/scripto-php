@@ -1,5 +1,5 @@
 {
-    "name": "w3glue/scripto-php",
+    "name": "bpaulsen314/scripto-php",
     "authors": [
         {
             "name": "Ben Paulsen",
@@ -8,17 +8,17 @@
     ],
     "autoload": {
         "psr-4": {
-            "W3glue\\Scripto\\": "src/"
+            "Bpaulsen314\\Scripto\\": "src/"
         }
     },
     "repositories": [
         {
             "type": "vcs",
-            "url": "https://github.com/w3glue/perfecto-php"
+            "url": "https://github.com/bpaulsen314/perfecto-php"
         }
     ],
     "require": {
-        "w3glue/perfecto-php": "dev-master"
+        "bpaulsen314/perfecto-php": "dev-master"
     },
     "require-dev": {
         "phpunit/phpunit": "4.1.*"

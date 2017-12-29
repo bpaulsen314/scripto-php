@@ -1,5 +1,5 @@
 <?php
-namespace W3glue\Scripto;
+namespace Bpaulsen314\Scripto;
 
 use \PHPUnit_Framework_TestCase as TestCase;
 

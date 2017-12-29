@@ -1,9 +1,9 @@
 <?php
-namespace W3glue\Scripto;
+namespace Bpaulsen314\Scripto;
 
 use \ErrorException;
 use \Exception;
-use W3glue\Perfecto\Object;
+use Bpaulsen314\Perfecto\Object;
 
 class Script extends Object
 {
