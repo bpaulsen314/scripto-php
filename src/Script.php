@@ -19,11 +19,11 @@ class Script extends Object
 
     protected $_arguments = [];
     protected $_debug = 0;
-    protected $_end_time;
-    protected $_exit_code;
-    protected $_executed_file;
-    protected $_pid_file;
-    protected $_start_time;
+    protected $_endTime;
+    protected $_executedFile;
+    protected $_exitCode;
+    protected $_pidFile;
+    protected $_startTime;
 
     public function __construct($config = null)
     {
@@ -45,7 +45,7 @@ class Script extends Object
         }
 
         if ($failure) {
-            $this->_exit_code = static::EXIT_RUN_FAILURE;
+            $this->_exitCode = static::EXIT_RUN_FAILURE;
             $this->log("UNEXPECTED ERROR ENCOUNTERED!!!");
             if (preg_match("#stack trace:#i", $failure["message"])) {
                 $this->log($failure["message"]);
@@ -56,11 +56,11 @@ class Script extends Object
             }
         }
 
-        $this->_end_time = time();
+        $this->_endTime = time();
 
-        switch ($this->_exit_code) {
+        switch ($this->_exitCode) {
             case static::EXIT_HELP:
-                $this->_exit_code = static::EXIT_SUCCESS;
+                $this->_exitCode = static::EXIT_SUCCESS;
                 break;
             
             case static::EXIT_SUCCESS:
@@ -74,13 +74,13 @@ class Script extends Object
                 break;
 
             case static::EXIT_RUN_SKIPPED:
-                $this->_exit_code = static::EXIT_SUCCESS;
+                $this->_exitCode = static::EXIT_SUCCESS;
                 break;
         }
 
         $this->_updatePidFile(true);
 
-        exit($this->_exit_code);
+        exit($this->_exitCode);
     }
 
     public final function start($arguments)
@@ -110,12 +110,12 @@ class Script extends Object
         if (!is_null($arguments)) {
             if ($arguments) {
                 if (is_file(getcwd() . "/" . $arguments[0])) {
-                    $this->_executed_file = realpath(getcwd() . "/" . $arguments[0]);
+                    $this->_executedFile = realpath(getcwd() . "/" . $arguments[0]);
                 } else if (is_file($arguments[0])) {
-                    $this->_executed_file = realpath($arguments[0]);
+                    $this->_executedFile = realpath($arguments[0]);
                 }
-                if ($this->_executed_file) {
-                    $this->_config["name"] = basename($this->_executed_file);
+                if ($this->_executedFile) {
+                    $this->_config["name"] = basename($this->_executedFile);
                     $arguments = $this->_parseCliArguments($arguments);
                 }
             }
@@ -144,11 +144,11 @@ class Script extends Object
         // only "run" script if help parameter is not provided and there are
         // no issues with the arguments provided
         if (array_key_exists("help", $this->_arguments)) {
-            $this->_exit_code = static::EXIT_HELP;
+            $this->_exitCode = static::EXIT_HELP;
             $text = $this->_getHelpText();
             echo $text;
         } else if ($argument_errors) {
-            $this->_exit_code = static::EXIT_START_FAILURE;
+            $this->_exitCode = static::EXIT_START_FAILURE;
             echo "\n";
             echo "ARGUMENT ERROR(S) ENCOUNTERED!!!\n";
             echo "\n";
@@ -160,11 +160,11 @@ class Script extends Object
             echo "\n";
             $this->_failure = false;
         } else {
-            $this->_exit_code = static::EXIT_SUCCESS;
+            $this->_exitCode = static::EXIT_SUCCESS;
 
             if ($this->_updatePidFile()) {
                 $this->_logHeader();
-                $this->_start_time = time();
+                $this->_startTime = time();
 
                 if (isset($this->_config["callback"])) {
                     call_user_func($this->_config["callback"], $this);
@@ -172,7 +172,7 @@ class Script extends Object
                     $this->_run();
                 }
             } else {
-                $this->_exit_code = static::EXIT_RUN_SKIPPED;
+                $this->_exitCode = static::EXIT_RUN_SKIPPED;
             }
         }
     }
@@ -188,7 +188,7 @@ class Script extends Object
         $host = gethostname();
         $hash = substr(sha1($content), 0, 8);
         $subject .= " <{$hash}>";
-        // $execution_env = "{$host}: {$this->_executed_file}";
+        // $execution_env = "{$host}: {$this->_executedFile}";
         // $subject .= " [{$execution_env}] <{$hash}>";
 
         if (!$to && isset($this->_arguments["email"])) {
@@ -374,7 +374,7 @@ class Script extends Object
         }
 
         $host = gethostname();
-        $execution_env = "{$host}: {$this->_executed_file}";
+        $execution_env = "{$host}: {$this->_executedFile}";
 
         if ($unrecoverable) {
             $subject = "SCRIPT FAILURE!!! ";
@@ -389,7 +389,7 @@ class Script extends Object
         } else {
             $content .= "An error occurred while executing ";
         }
-        $content .= "'{$this->_executed_file}' on '{$host}'.  The following ";
+        $content .= "'{$this->_executedFile}' on '{$host}'.  The following ";
         if ($unrecoverable) {
             $content .= "are the details of this failure:";
         } else {
@@ -443,12 +443,12 @@ class Script extends Object
         if (!file_exists($user_pid_dir)) {
             mkdir($user_pid_dir, 0777, true);
         }
-        $this->_pid_file = $user_pid_dir . $this->_config["name"] . "." . 
+        $this->_pidFile = $user_pid_dir . $this->_config["name"] . "." . 
             $this->_getPidCategory() . ".pid";
 
         $active_pids = [];
-        if (file_exists($this->_pid_file)) {
-            $pids = json_decode(file_get_contents($this->_pid_file), true);
+        if (file_exists($this->_pidFile)) {
+            $pids = json_decode(file_get_contents($this->_pidFile), true);
             foreach ($pids as $pid) {
                 if ($pid !== getmypid() && posix_getpgid($pid)) {
                     $active_pids[] = $pid;
@@ -470,9 +470,9 @@ class Script extends Object
 
         if ($active_pids !== false) {
             if ($active_pids) {
-                file_put_contents($this->_pid_file, json_encode($active_pids));
+                file_put_contents($this->_pidFile, json_encode($active_pids));
             } else {
-                unlink($this->_pid_file);
+                unlink($this->_pidFile);
             }
         }
 
